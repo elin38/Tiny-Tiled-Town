@@ -15,6 +15,7 @@ class Pathfinder extends Phaser.Scene {
         this.villagerWalkingSpeed = 300;
         this.villagers = [];
         this.isMoving = false;
+        this.dialogueShowing = false;
     }
 
     create() {
@@ -41,7 +42,7 @@ class Pathfinder extends Phaser.Scene {
         this.questHeal = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(6), "character").setOrigin(0, 0);
 
         // Camera settings
-        this.cameras.main.setBounds(0, 0, this.map.widthInPixels);
+        this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         this.cameras.main.setZoom(this.SCALE);
         this.cameras.main.startFollow(this.activeCharacter, true, 0.1, 0.1); // Follow the character
 
@@ -84,17 +85,22 @@ class Pathfinder extends Phaser.Scene {
         this.textInteract.visible = false;
 
         //text
-        this.dialogueBox = this.add.text(20, 20, "HIIIII", {
-            fontFamily: 'Arial',
+        this.dialogueBox = this.add.text(0, 0, "HIIIIIasdf asdf asf asdf asf as fasasdfasdfasdfs fasas dfasfdasf asfd asf as f adf asfas fasdf", {
+            fontFamily: 'Helvetica',
             fontSize: '16px',
-            backgroundColor: '#000000',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Set background color with 50% opacity
             color: '#ffffff',
             padding: { x: 10, y: 5 },
-            wordWrap: { width: this.cameras.main.width - 20 }
+            wordWrap: { width: this.cameras.main.width / this.SCALE}
         });
-        this.textInteract.setOrigin(0, 0); // Center the text horizontally
+        this.dialogueBox.setOrigin(0.5, 0.5); // Center the text horizontally
 
-        this.dialogueBox.visible = true;
+        this.dialogueBox.setPosition(
+            this.cameras.main.worldView.x + (this.cameras.main.width / this.SCALE) / 2,
+            this.cameras.main.worldView.y + (this.cameras.main.height / this.SCALE) * 0.85
+        );
+
+        this.dialogueBox.visible = false;
     }
 
     createVillager(x, y, texture) {
@@ -106,6 +112,14 @@ class Pathfinder extends Phaser.Scene {
     update() {
         this.textInteract.setPosition(this.activeCharacter.x + 4, this.activeCharacter.y - 12);
 
+        this.dialogueBox.setPosition(
+            this.cameras.main.worldView.x + (this.cameras.main.width / this.SCALE) / 2,
+            this.cameras.main.worldView.y + (this.cameras.main.height / this.SCALE) * 0.85
+        );
+
+        this.dialogueBox.visible = this.dialogueShowing;
+        
+
         if (Phaser.Input.Keyboard.JustDown(this.cKey)) {
             if (!this.walking) {
                 // Make the path low cost with respect to grassy areas
@@ -113,12 +127,14 @@ class Pathfinder extends Phaser.Scene {
                 // this.lowCost = true;
                 this.walkingSpeed = 200;
                 console.log("Walking\n");
+                console.log(this.cameras.main.width, this.cameras.main.height / this.SCALE);
                 this.walking = false;
             } else {
                 // Restore everything to same cost
                 // this.resetCost(this.tileset);
                 // this.lowCost = false;
                 this.walkingSpeed = 100;
+                console.log(this.cameras.main.height / this.SCALE, this.cameras.main.height / this.SCALE);
                 console.log("Running\n");
             }
         }
@@ -128,6 +144,7 @@ class Pathfinder extends Phaser.Scene {
             this.textInteract.visible = true;
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
                 //text box appears
+                this.toggleDialogue();
                 console.log("toggle text box");
             }
         } else {
@@ -147,6 +164,14 @@ class Pathfinder extends Phaser.Scene {
             },
             callbackScope: this,
         });
+    }
+
+    toggleDialogue() {
+        if (this.dialogueShowing) {
+            this.dialogueShowing = false;
+        } else {
+            this.dialogueShowing = true;
+        }
     }
 
     moveRandomVillager() {
