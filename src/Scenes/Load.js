@@ -7,6 +7,7 @@ class Load extends Phaser.Scene {
         this.load.setPath("./assets/");
 
         // Load townsfolk
+        this.load.image("character", "adventurer.png");
         this.load.image("purple", "purple_townie.png");
         this.load.image("blue", "blue_townie.png");
 
@@ -16,8 +17,6 @@ class Load extends Phaser.Scene {
     }
 
     create() {
-        
-
          // ...and pass to the next Scene
          this.scene.start("pathfinderScene");
     }

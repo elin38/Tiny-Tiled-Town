@@ -1,7 +1,8 @@
-// Jim Whitehead
-// Created: 5/26/2024
+// Ethan Lin
+// Created: 6/7/2024
 // Phaser: 3.80.0
 //
+// Based off of Professor Jim Whitehead's
 // Pathfinder demo
 //
 // An example of pathfinding in Phaser using the EasyStar.js pathfinder 
