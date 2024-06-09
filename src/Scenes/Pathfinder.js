@@ -23,6 +23,7 @@ class Pathfinder extends Phaser.Scene {
         this.questCartAccepted = false;
 
         this.questRunCompleted = false;
+        this.questCartCompleted = false;
         this.hasHoney = false;
 
         this.canRun = false;
@@ -55,9 +56,9 @@ class Pathfinder extends Phaser.Scene {
 
         //quest spawnlocations
         this.questRun = this.add.sprite(this.tileXtoWorld(19), this.tileYtoWorld(6), "questVillager").setOrigin(0, 0);
-        this.apothecary = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "apothecary").setOrigin(0, 0);
-        // this.apothecary = this.add.sprite(this.tileXtoWorld(3), this.tileYtoWorld(39), "apothecary").setOrigin(0, 0);
-        this.honeyComb = this.add.sprite(this.tileXtoWorld(2), this.tileYtoWorld(8), "honeyComb").setOrigin(0, 0);
+        this.apothecary = this.add.sprite(this.tileXtoWorld(7), this.tileYtoWorld(43), "apothecary").setOrigin(0, 0);
+        this.honeyComb = this.add.sprite(this.tileXtoWorld(45), this.tileYtoWorld(38), "honeyComb").setOrigin(0, 0);
+        this.retiredAdventurer = this.add.sprite(this.tileXtoWorld(20), this.tileYtoWorld(25), "retired").setOrigin(0, 0);
 
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -83,7 +84,7 @@ class Pathfinder extends Phaser.Scene {
 
         this.cKey = this.input.keyboard.addKey('C');
         this.eKey = this.input.keyboard.addKey('E');
-        this.walking = true;
+        this.running = true;
         this.setCost(this.tileset);
 
         // Start the villager movement timer
@@ -127,6 +128,19 @@ class Pathfinder extends Phaser.Scene {
         this.textApothecaryQ.setOrigin(0, 0); // Center the text horizontally
         this.textApothecaryQ.visible = false;
 
+        //text for quest indication of apothecary
+        //text for playable character
+        this.adventurerQ = this.add.text(this.retiredAdventurer.x + 6, this.retiredAdventurer.y - 14, "!", {
+            fontFamily: 'Helvetica',
+            color: '#FFFF00',
+            fontSize: 12,
+            wordWrap: {
+                width: 250
+            }
+        });
+        this.adventurerQ.setOrigin(0, 0); // Center the text horizontally
+        this.adventurerQ.visible = true;
+
         //text
         this.dialogueBox = this.add.text(0, 0, "Text Box", {
             fontFamily: 'Helvetica',
@@ -164,15 +178,14 @@ class Pathfinder extends Phaser.Scene {
         
 
         if (Phaser.Input.Keyboard.JustDown(this.cKey) && this.canRun) {
-            if (!this.walking) {
+            if (!this.running) {
                 this.walkingSpeed = 200;
-                console.log("Walking\n");
-                console.log(this.cameras.main.width, this.cameras.main.height / this.SCALE);
-                this.walking = false;
+                console.log("walking\n");
+                this.running = true;
             } else {
                 this.walkingSpeed = 100;
-                console.log(this.cameras.main.height / this.SCALE, this.cameras.main.height / this.SCALE);
-                console.log("Running\n");
+                console.log("running\n");
+                this.running = false;
             }
         }
         
@@ -248,8 +261,34 @@ class Pathfinder extends Phaser.Scene {
             }
         }
 
+        if(this.withinRangeOf(this.activeCharacter, this.retiredAdventurer)) {
+            console.log("In range of retiredAdventurer");
+            this.textInteract.visible = true;
+            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                //text box appears
+                if (!this.questRunCompleted) {
+                    this.dialogueBox.setText("I have a quest for you, but it is not for the weak. I believe it is best for you to get that knee healed first. Come back to me when you can run.");
+                    this.toggleDialogue();
+                } else {
+                    this.questCartAccepted = true;
+                    this.dialogueBox.setText("Legends speak of a portal to another world. A single path into the woods lies beyond the forest. There, a strange structure will bring you... elsewhere...");
+                    this.toggleDialogue();
+                }
+            }
+        }
+
+        if (this.questCartAccepted) {
+            //if the character is infront of the cart, they can end the game by pressing e
+            if(this.activeCharacter.x == this.tileXtoWorld(45) && this.activeCharacter.y == this.tileYtoWorld(5)) {
+                this.textInteract.visible = true;
+                if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                    console.log("end game");
+                }
+            }
+        }
+
         //if the player is not near the interactables, make sure the dialoge and "E" are hidden
-        if (!this.withinRangeOf(this.activeCharacter, this.apothecary) && !this.withinRangeOf(this.activeCharacter, this.questRun) && !this.withinRangeOf(this.activeCharacter, this.honeyComb)) {
+        if (!this.withinRangeOf(this.activeCharacter, this.apothecary) && !this.withinRangeOf(this.activeCharacter, this.questRun) && !this.withinRangeOf(this.activeCharacter, this.honeyComb) && !this.withinRangeOf(this.activeCharacter, this.retiredAdventurer) && (!(this.activeCharacter.x == this.tileXtoWorld(45) && this.activeCharacter.y == this.tileYtoWorld(5)))) {
             this.textInteract.visible = false;
             if (this.dialogueBox.visible) {
                 this.toggleDialogue();
@@ -365,6 +404,9 @@ class Pathfinder extends Phaser.Scene {
         let toY = Math.floor(y / this.TILESIZE);
         let fromX = Math.floor(this.activeCharacter.x / this.TILESIZE);
         let fromY = Math.floor(this.activeCharacter.y / this.TILESIZE);
+
+        if (toX == fromX && toY == fromY) return;
+
         console.log('going from (' + fromX + ',' + fromY + ') to (' + toX + ',' + toY + ')');
 
         this.finder.findPath(fromX, fromY, toX, toY, (path) => {
