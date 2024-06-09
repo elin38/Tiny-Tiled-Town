@@ -16,6 +16,15 @@ class Pathfinder extends Phaser.Scene {
         this.villagers = [];
         this.isMoving = false;
         this.dialogueShowing = false;
+
+        //quest flags
+        this.questRunAccepted = false;
+        this.questHoneyAccepted = false;
+        this.questCartAccepted = false;
+
+        this.questRunCompleted = false;
+        this.questHoneyCompleted = false;
+        this.questCartCompleted = false;
     }
 
     create() {
@@ -34,12 +43,19 @@ class Pathfinder extends Phaser.Scene {
         // Use setOrigin() to ensure the tile space computations work well
         this.activeCharacter = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(5), "character").setOrigin(0, 0);
 
-        this.villagers.push(this.createVillager(this.tileXtoWorld(14), this.tileYtoWorld(5), "purple"));
-        this.villagers.push(this.createVillager(this.tileXtoWorld(23), this.tileYtoWorld(5), "blue"));
-        this.villagers.push(this.createVillager(this.tileXtoWorld(5), this.tileYtoWorld(15), "purple"));
-        this.villagers.push(this.createVillager(this.tileXtoWorld(14), this.tileYtoWorld(15), "blue"));
-        
-        this.questHeal = this.add.sprite(this.tileXtoWorld(5), this.tileYtoWorld(6), "character").setOrigin(0, 0);
+        this.villagers.push(this.createVillager(this.tileXtoWorld(14), this.tileYtoWorld(5), "villager1"));
+        this.villagers.push(this.createVillager(this.tileXtoWorld(23), this.tileYtoWorld(5), "villager2"));
+        this.villagers.push(this.createVillager(this.tileXtoWorld(5), this.tileYtoWorld(15), "villager1"));
+        this.villagers.push(this.createVillager(this.tileXtoWorld(14), this.tileYtoWorld(15), "villager2"));
+
+        this.villagers.push(this.createVillager(this.tileXtoWorld(23), this.tileYtoWorld(15), "villager3"));
+        this.villagers.push(this.createVillager(this.tileXtoWorld(32), this.tileYtoWorld(5), "villager4"));
+        this.villagers.push(this.createVillager(this.tileXtoWorld(32), this.tileYtoWorld(15), "villager4"));
+
+        //quest spawnlocations
+        this.questRun = this.add.sprite(this.tileXtoWorld(19), this.tileYtoWorld(6), "questVillager").setOrigin(0, 0);
+        this.apothecary = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "apothecary").setOrigin(0, 0);
+        // this.apothecary = this.add.sprite(this.tileXtoWorld(3), this.tileYtoWorld(39), "apothecary").setOrigin(0, 0);
 
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -71,7 +87,7 @@ class Pathfinder extends Phaser.Scene {
         // Start the villager movement timer
         this.startVillagerTimer();
 
-        //text
+        //text for playable character
         this.textInteract = this.add.text(this.activeCharacter.x, this.activeCharacter.y, "E", {
             fontFamily: 'Helvetica',
             fontSize: 10,
@@ -80,18 +96,43 @@ class Pathfinder extends Phaser.Scene {
             }
         });
         this.textInteract.setOrigin(0, 0); // Center the text horizontally
-    
         // Hide the interact text initially
         this.textInteract.visible = false;
 
+        //text for questIndication
+        //text for playable character
+        this.textRunQuestAvailable = this.add.text(this.questRun.x + 6.5, this.questRun.y - 14, "!", {
+            fontFamily: 'Helvetica',
+            color: '#FFFF00',
+            fontSize: 12,
+            wordWrap: {
+                width: 250
+            }
+        });
+        this.textRunQuestAvailable.setOrigin(0, 0); // Center the text horizontally
+        this.textRunQuestAvailable.visible = false;
+
+        //text for quest indication of apothecary
+        //text for playable character
+        this.textApothecaryQ = this.add.text(this.apothecary.x + 4, this.apothecary.y - 14, "?", {
+            fontFamily: 'Helvetica',
+            color: '#FFFF00',
+            fontSize: 12,
+            wordWrap: {
+                width: 250
+            }
+        });
+        this.textApothecaryQ.setOrigin(0, 0); // Center the text horizontally
+        this.textApothecaryQ.visible = false;
+
         //text
-        this.dialogueBox = this.add.text(0, 0, "HIIIIIasdf asdf asf asdf asf as fasasdfasdfasdfs fasas dfasfdasf asfd asf as f adf asfas fasdf", {
+        this.dialogueBox = this.add.text(0, 0, "Text Box", {
             fontFamily: 'Helvetica',
             fontSize: '16px',
             backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Set background color with 50% opacity
             color: '#ffffff',
-            padding: { x: 10, y: 5 },
-            wordWrap: { width: this.cameras.main.width / this.SCALE}
+            padding: { x: 5, y: 3 },
+            wordWrap: { width: this.cameras.main.width / this.SCALE - 10}
         });
         this.dialogueBox.setOrigin(0.5, 0.5); // Center the text horizontally
 
@@ -122,33 +163,68 @@ class Pathfinder extends Phaser.Scene {
 
         if (Phaser.Input.Keyboard.JustDown(this.cKey)) {
             if (!this.walking) {
-                // Make the path low cost with respect to grassy areas
-                // this.setCost(this.tileset);
-                // this.lowCost = true;
                 this.walkingSpeed = 200;
                 console.log("Walking\n");
                 console.log(this.cameras.main.width, this.cameras.main.height / this.SCALE);
                 this.walking = false;
             } else {
-                // Restore everything to same cost
-                // this.resetCost(this.tileset);
-                // this.lowCost = false;
                 this.walkingSpeed = 100;
                 console.log(this.cameras.main.height / this.SCALE, this.cameras.main.height / this.SCALE);
                 console.log("Running\n");
             }
         }
-
-        if(this.withinRangeOf(this.activeCharacter, this.questHeal)) {
-            console.log("In range of questHeal");
-            this.textInteract.visible = true;
-            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
-                //text box appears
-                this.toggleDialogue();
-                console.log("toggle text box");
+        
+        //code for initial quest that unlocks running
+        if (!this.questRunCompleted) {
+            this.textRunQuestAvailable.visible = true;
+            if(this.withinRangeOf(this.activeCharacter, this.questRun)) {
+                console.log("In range of questRun");
+                this.textInteract.visible = true;
+                if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                    //text box appears
+                    if (!this.questRunAccepted) {
+                        this.dialogueBox.setText("Villager: Arrow to the knee, huh? That sounds rough. I suggest you head SOUTH to the apothecary. His shop has a big mushroom patch out back. His potions can help.");
+                        this.questRunAccepted = true;
+                        this.toggleDialogue();
+                    } else {
+                        this.dialogueBox.setText("The apothecary? It should be at the SOUTHEASTERN part of town.");
+                        this.toggleDialogue();
+                    }
+                    
+                }
             }
         } else {
+            this.textRunQuestAvailable.visible = false;
+        }
+
+        //code for apothocary quest line
+        if (!this.questRunCompleted && this.questRunAccepted) {
+            this.textApothecaryQ.visible = true;
+            if(this.withinRangeOf(this.activeCharacter, this.apothecary)) {
+                console.log("In range of apothecary");
+                this.textInteract.visible = true;
+                if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                    //text box appears
+                    if (!this.questHoneyAccepted) {
+                        this.dialogueBox.setText("There you go, all better now! You shouldeven be able to run around now! (Press \"C\" to toggle sprinting) By the way, do you mind getting some honey for me. There should be some beehives in the EASTERN FORREST.");
+                        this.questHoneyAccepted = true;
+                        this.toggleDialogue();
+                    } else {
+                        this.dialogueBox.setText("In return for healing your knee, could you go fetch me some honey from the EASTERN FORREST?");
+                        this.toggleDialogue();
+                    }
+                }
+            }
+        } else {
+            this.textApothecaryQ.visible = false;
+        }
+
+        //if the player is not near the interactables, make sure the dialoge and "E" are hidden
+        if (!this.withinRangeOf(this.activeCharacter, this.apothecary) && !this.withinRangeOf(this.activeCharacter, this.questRun)) {
             this.textInteract.visible = false;
+            if (this.dialogueBox.visible) {
+                this.toggleDialogue();
+            }
         }
     }
 

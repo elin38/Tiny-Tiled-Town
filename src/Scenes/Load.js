@@ -8,8 +8,13 @@ class Load extends Phaser.Scene {
 
         // Load townsfolk
         this.load.image("character", "adventurer.png");
-        this.load.image("purple", "purple_townie.png");
-        this.load.image("blue", "blue_townie.png");
+        this.load.image("villager1", "purple_villager.png");
+        this.load.image("villager2", "blue_villager.png");
+        this.load.image("villager3", "gray_villager.png");
+        this.load.image("villager4", "brown_villager.png");
+        this.load.image("questVillager", "green_villager.png");
+        this.load.image("apothecary", "apothocary.png");
+        
 
         // Load tilemap information
         this.load.image("tilemap_tiles", "tilemap_packed.png");                   // Packed tilemap
