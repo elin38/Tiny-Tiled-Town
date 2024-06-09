@@ -1,6 +1,6 @@
-class Pathfinder extends Phaser.Scene {
+class TinyTown extends Phaser.Scene {
     constructor() {
-        super("pathfinderScene");
+        super("gameScene");
     }
 
     preload() {
@@ -283,6 +283,7 @@ class Pathfinder extends Phaser.Scene {
                 this.textInteract.visible = true;
                 if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
                     console.log("end game");
+                    this.scene.start('endScene');
                 }
             }
         }
@@ -313,7 +314,13 @@ class Pathfinder extends Phaser.Scene {
     toggleDialogue() {
         if (this.dialogueShowing) {
             this.dialogueShowing = false;
+            this.sound.play("diaC", {
+                volume: 0.15   // Can adjust volume using this, goes from 0 to 1
+            });
         } else {
+            this.sound.play("dia", {
+                volume: 0.15   // Can adjust volume using this, goes from 0 to 1
+            });
             this.dialogueShowing = true;
         }
     }
