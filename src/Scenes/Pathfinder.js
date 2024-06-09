@@ -271,7 +271,7 @@ class Pathfinder extends Phaser.Scene {
                     this.toggleDialogue();
                 } else {
                     this.questCartAccepted = true;
-                    this.dialogueBox.setText("Legends speak of a portal to another world. A single path into the woods lies beyond the forest. There, a strange structure will bring you... elsewhere...");
+                    this.dialogueBox.setText("You are looking much better! Legends speak of a portal to another world. A single path into the woods lies beyond the forest. There, a strange structure will bring you... elsewhere...");
                     this.toggleDialogue();
                 }
             }
@@ -297,7 +297,7 @@ class Pathfinder extends Phaser.Scene {
     }
 
     startVillagerTimer() {
-        const randomDelay = Phaser.Math.Between(5000, 12000); // Random delay between 5 and 12 seconds
+        const randomDelay = Phaser.Math.Between(5000, 8000); // Random delay between 5 and 8 seconds
         console.log("Villager Move Timer: " + randomDelay/1000 + "s");
 
         this.time.addEvent({
