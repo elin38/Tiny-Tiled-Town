@@ -14,6 +14,7 @@ class Load extends Phaser.Scene {
         this.load.image("villager4", "brown_villager.png");
         this.load.image("questVillager", "green_villager.png");
         this.load.image("apothecary", "apothocary.png");
+        this.load.image("honeyComb", "honey.png");
         
 
         // Load tilemap information

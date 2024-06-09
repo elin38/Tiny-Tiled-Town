@@ -23,8 +23,9 @@ class Pathfinder extends Phaser.Scene {
         this.questCartAccepted = false;
 
         this.questRunCompleted = false;
-        this.questHoneyCompleted = false;
-        this.questCartCompleted = false;
+        this.hasHoney = false;
+
+        this.canRun = false;
     }
 
     create() {
@@ -56,6 +57,7 @@ class Pathfinder extends Phaser.Scene {
         this.questRun = this.add.sprite(this.tileXtoWorld(19), this.tileYtoWorld(6), "questVillager").setOrigin(0, 0);
         this.apothecary = this.add.sprite(this.tileXtoWorld(1), this.tileYtoWorld(1), "apothecary").setOrigin(0, 0);
         // this.apothecary = this.add.sprite(this.tileXtoWorld(3), this.tileYtoWorld(39), "apothecary").setOrigin(0, 0);
+        this.honeyComb = this.add.sprite(this.tileXtoWorld(2), this.tileYtoWorld(8), "honeyComb").setOrigin(0, 0);
 
         // Camera settings
         this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -161,7 +163,7 @@ class Pathfinder extends Phaser.Scene {
         this.dialogueBox.visible = this.dialogueShowing;
         
 
-        if (Phaser.Input.Keyboard.JustDown(this.cKey)) {
+        if (Phaser.Input.Keyboard.JustDown(this.cKey) && this.canRun) {
             if (!this.walking) {
                 this.walkingSpeed = 200;
                 console.log("Walking\n");
@@ -198,7 +200,7 @@ class Pathfinder extends Phaser.Scene {
         }
 
         //code for apothocary quest line
-        if (!this.questRunCompleted && this.questRunAccepted) {
+        if (!this.questRunCompleted && this.questRunAccepted && !this.hasHoney) {
             this.textApothecaryQ.visible = true;
             if(this.withinRangeOf(this.activeCharacter, this.apothecary)) {
                 console.log("In range of apothecary");
@@ -206,21 +208,48 @@ class Pathfinder extends Phaser.Scene {
                 if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
                     //text box appears
                     if (!this.questHoneyAccepted) {
-                        this.dialogueBox.setText("There you go, all better now! You shouldeven be able to run around now! (Press \"C\" to toggle sprinting) By the way, do you mind getting some honey for me. There should be some beehives in the EASTERN FORREST.");
+                        this.dialogueBox.setText("I can heal your knee, unfortunately I do not have the honey needed for the potion. Could you go fetch me some honey? There should be some beehives in the EASTERN FORREST.");
+                        // this.dialogueBox.setText("There you go, all better now! You should even be able to run around now! (Press \"C\" to toggle sprinting) By the way, do you mind getting some honey for me. There should be some beehives in the EASTERN FORREST.");
                         this.questHoneyAccepted = true;
                         this.toggleDialogue();
                     } else {
-                        this.dialogueBox.setText("In return for healing your knee, could you go fetch me some honey from the EASTERN FORREST?");
+                        this.dialogueBox.setText("In order to heal your knee, I need honey. There should be some in the EASTERN FORREST.");
                         this.toggleDialogue();
                     }
+                }
+            }
+        } else if (!this.questRunCompleted && this.hasHoney) {
+            if(this.withinRangeOf(this.activeCharacter, this.apothecary)) {
+                console.log("In range of apothecary");
+                this.textInteract.visible = true;
+                if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                    //text box appears
+                    this.dialogueBox.setText("You got the honey! There you go, all better now! You should even be able to run around now! (Press \"C\" to toggle sprinting)");
+                    this.questRunCompleted = true;
+                    this.canRun = true;
+                    this.toggleDialogue();
                 }
             }
         } else {
             this.textApothecaryQ.visible = false;
         }
 
+        //code for picking up honey
+        if (this.questHoneyAccepted && !this.questRunCompleted) {
+            if(this.withinRangeOf(this.activeCharacter, this.honeyComb)) {
+                console.log("In range of honey");
+                this.textInteract.visible = true;
+                if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                    //text box appears
+                    this.dialogueBox.setText("*Honey Collected*");
+                    this.hasHoney = true;
+                    this.toggleDialogue();
+                }
+            }
+        }
+
         //if the player is not near the interactables, make sure the dialoge and "E" are hidden
-        if (!this.withinRangeOf(this.activeCharacter, this.apothecary) && !this.withinRangeOf(this.activeCharacter, this.questRun)) {
+        if (!this.withinRangeOf(this.activeCharacter, this.apothecary) && !this.withinRangeOf(this.activeCharacter, this.questRun) && !this.withinRangeOf(this.activeCharacter, this.honeyComb)) {
             this.textInteract.visible = false;
             if (this.dialogueBox.visible) {
                 this.toggleDialogue();
